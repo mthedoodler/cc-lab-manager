@@ -32,9 +32,12 @@ local LAB_PROTOCOL = "lab"
 
 local host = {}
 
-local function isValidPacket(packet)
-    return (type(packet) == "table") and (packet.message ~= nil) and (packet.protocol ~= nil)
+local function generateMessageID()
+    return ("%d-%d-%d"):format(os.getComputerID(), os.epoch("utc"), math.random(0, 9999))
 end
+
+local function isValidPacket(packet)
+    return (type(packet) == "table") and (type(packet.msg == "string") or type(packet.msg) == "table") and (type(packet.protocol) == "string") and (type(packet.id) == "string") end
 
 local function decodeMessage(msg)
     expect(1, msg, "string")
@@ -42,30 +45,32 @@ local function decodeMessage(msg)
     local res, err = textutils.unserialiseJSON(msg)
 
     if not res then
-        return nil, nil, "invalid json"
+        return nil, "invalid json"
     end
 
     if not isValidPacket(res) then
-       return nil, nil, "json missing protocol or message field"
+       return nil, "json missing protocol, message, or id field"
     end
 
-    return res.message, res.protocol
+    return {id=res.id, message=res.message, protocol=res.protocol}
 end
 
-local function encodeMessage(message, protocol)
+local function encodeMessage(msgId, message, protocol)
     expect(1, message, "string", "table")
     expect(2, protocol, "string")
 
     return textutils.serialiseJSON({
             message = message,
-            protocol = protocol
+            protocol = protocol,
+            id = msgId
         })
 end
 
 local supplierNet = {}
 
 function supplierNet.send(id, message, protocol)
-    rednet.send(id, encodeMessage(message, protocol), LAB_PROTOCOL)
+    local packetID = generateMessageID()
+    rednet.send(id, encodeMessage(packetID, message, protocol), LAB_PROTOCOL)
 end
 
 function supplierNet.receive(timeout)
@@ -75,18 +80,18 @@ function supplierNet.receive(timeout)
         error("disconnect: no packet received")    
     end
 
-    local message, protocol, err = decodeMessage(packet)
+    local msg, err = decodeMessage(packet)
 
     if err then
-        supplierNet.send(id, "error", err)
+        supplierNet.send(id, err, "error")
         return nil
     end
 
-    return id, message, protocol
+    return id, msg.id, msg.message, msg.protocol
 end
 
 function host.send(message, protocol)
-    host.websocket.send(encodeMessage(message, protocol))
+    host.websocket.send(encodeMessage("", message, protocol))
 end
 
 function host.receive()
@@ -101,14 +106,14 @@ function host.receive()
         error("disconnect: empty packet")
     end
     
-    local message, protocol, err = decodeMessage(packet)
+    local msg, err = decodeMessage(packet)
 
     if err then
-        host.websocket.send(encodeMessage("error", err))
+        host.websocket.send(encodeMessage("", "error", err))
         return nil
     end
 
-    return message, protocol
+    return msg.id, msg.message, msg.protocol
 end
 
 function host.connect(timeout)

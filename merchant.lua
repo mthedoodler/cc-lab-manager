@@ -231,7 +231,7 @@ local function handleSuppliers()
     end
 
     while true do
-        local id, message, protocol = supplierNet.receive()
+        local id, msgId, message, protocol = supplierNet.receive()
 
         if message ~= nil then
             if protocol ~= "keepalive" then
@@ -253,7 +253,7 @@ local function handleHost()
     end
 
     while true do
-        local message, protocol = host.receive()
+        local _, message, protocol = host.receive()
 
         if message then
             printFromHost("<" .. protocol .. ">:" .. textutils.serialise(message))
@@ -317,8 +317,3 @@ while true do
         end
     end
 end
-
-
-
-
-
