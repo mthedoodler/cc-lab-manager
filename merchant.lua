@@ -241,7 +241,7 @@ local function handleSuppliers()
         local id, msgId, message, protocol = supplierNet.receive()
 
         if message ~= nil then
-            if protocol ~= "keepalive" then
+            if protocol ~= "ack" then
                 printFromSupplier("<" .. id .. ":" .. protocol .. ">: " .. textutils.serialise(message))
             end
 
