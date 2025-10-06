@@ -300,7 +300,12 @@ while true do
     host.connect()
     printFromMerchant("Connected!")
     local ok, res = pcall(function() parallel.waitForAny(handleHost, handleSuppliers, handleTimeouts) end)
-    host.disconnect(true)
+    host.disconnect()
+    
+    for id, _ in pairs(SUPPLIERS) do
+        unregisterSupplier(id)
+    end
+
     if not ok then
         local disconnectErrPosition = {res:find("disconnect")}
         disconnectErrPosition = disconnectErrPosition[2]

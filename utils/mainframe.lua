@@ -131,15 +131,9 @@ function host.connect(timeout)
     host.websocket = ws
 end
 
-function host.disconnect(unregisterSuppliers)
+function host.disconnect()
     host.websocket.close()
     host.websocket = nil
-
-    if unregisterSuppliers then
-        for id, _ in pairs(SUPPLIERS) do
-            unregisterSuppliers(id)
-        end
-    end
 
     local _, isCoroutine = coroutine.running()
     if isCoroutine then
