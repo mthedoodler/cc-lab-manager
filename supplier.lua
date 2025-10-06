@@ -46,7 +46,7 @@ local function connectAndRegister(supplierInfo)
     local connected = false
     repeat
         supplierNet.send(merchantId, supplierInfo, "register")
-        local id, msg, protocol = supplierNet.receive(5)
+        local id, msgId, msg, protocol = supplierNet.receive(5)
 
         if (msg ~= nil) and (id == merchantId) and (protocol == "register") then
             if msg == "ok" then
