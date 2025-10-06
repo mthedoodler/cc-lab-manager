@@ -18,9 +18,7 @@ local TIMEOUT_SECONDS = mainframe.TIMEOUT_SECONDS
 local _supplierSend = supplierNet.send
 
 function supplierNet.send(id, message, protocol, msgId)
-    if SUPPLIERS[id] then
-        SUPPLIERS[id].timeout = os.clock()
-    end
+    merchantTimeout = os.clock()
     _supplierSend(id, message, protocol, msgId)
 end
 
@@ -128,12 +126,11 @@ local function supply(merchantId, commands, protocolHandlers)
     local function _keepAlive()
         while true do
             sleep(TIMEOUT_SECONDS)
+            print(merchantTimeout, os.clock())
             if (merchantTimeout) and (os.clock() - merchantTimeout) >= (TIMEOUT_SECONDS+1) then
                 printFromSupplier("Merchant timed out. Unregistering.")
-
                 return
             end
-            supplierNet.send(merchantId, "", "keepalive")
         end
     end
 
