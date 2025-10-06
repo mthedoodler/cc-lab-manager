@@ -83,6 +83,13 @@ local function supply(merchantId, commands, protocolHandlers)
                 printFromMerchant("<" .. protocol .. ">" .. textutils.serialise(message))
 
                 if id == merchantId then
+                    if protocol ~= "ack" then
+                        supplierNet.send(merchantId, {
+                            id = msgId,
+                            from = protocol
+                        }, "ack")
+                    end
+
                     if protocol == "cmd" then
                         if message.cmd ~= nil then 
                             if commands[message.cmd] then
