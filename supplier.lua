@@ -77,7 +77,7 @@ local function supply(merchantId, commands, protocolHandlers)
 
     local function _run()
         while true do
-            local id, message, protocol = supplierNet.receive()
+            local msgId, id, message, protocol = supplierNet.receive()
 
             if message ~= nil then
                 printFromMerchant("<" .. protocol .. ">" .. textutils.serialise(message))
