@@ -147,4 +147,8 @@ function host.disconnect(unregisterSuppliers)
     end
 end
 
-return {host=host, supplierNet=supplierNet, logger={printFromHost=printFromHost, printFromMerchant=printFromMerchant, printFromSupplier=printFromSupplier}}
+return {host=host, 
+        supplierNet=supplierNet, 
+        logger={printFromHost=printFromHost, printFromMerchant=printFromMerchant, printFromSupplier=printFromSupplier},
+        TIMEOUT_SECONDS = 10
+    }
