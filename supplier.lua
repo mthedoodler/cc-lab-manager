@@ -13,6 +13,8 @@ local printFromSupplier = logger.printFromSupplier
 
 local merchantTimeout
 
+local TIMEOUT_SECONDS = mainframe.TIMEOUT_SECONDS
+
 local function findMerchant(timeout)
     local timeout = timeout or 1
     local merchantId
@@ -111,8 +113,8 @@ local function supply(merchantId, commands, protocolHandlers)
 
     local function _keepAlive()
         while true do
-            sleep(6)
-            if (os.clock() - merchantTimeout) >= 6 then
+            sleep(TIMEOUT_SECONDS)
+            if (os.clock() - merchantTimeout) >= (TIMEOUT_SECONDS+1) then
                 printFromSupplier("Merchant timed out. Unregistering.")
 
                 return
