@@ -225,7 +225,6 @@ local PROTOCOL_HANDLERS = {
     ack = {
         supplier = function(msg, id)
             if SUPPLIERS[id] then
-                print("?")
                 SUPPLIERS[id].timeout = nil
             end
         end
