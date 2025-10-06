@@ -1,4 +1,5 @@
 --Run 'host.py' in Lab Manager venv.
+
 local strings = require("cc.strings")
 local expect = require("cc.expect")
 local expect, field = expect.expect, expect.field
@@ -13,6 +14,8 @@ local logger = mainframe.logger
 local printFromMerchant = logger.printFromMerchant
 local printFromHost = logger.printFromHost
 local printFromSupplier = logger.printFromSupplier
+
+local TIMEOUT = mainframe.TIMEOUT_SECONDS
 
 -- ########################################################## --
 
@@ -267,7 +270,7 @@ end
 local function handleTimeouts()
     while true do
         for id, info in pairs(SUPPLIERS) do
-            if (os.clock() - info.timeout) >= 6 then
+            if (os.clock() - info.timeout) >= TIMEOUT then
                 printFromMerchant("Supplier " .. id .. " timed out.")
                 host.send("Supplier " .. id .. " timed out.", "info")
                 local supplierPeripheral = getPCIDs()[id]
@@ -280,7 +283,7 @@ local function handleTimeouts()
                 supplierNet.send(id, "", "keepalive")
             end
         end
-        sleep(6)
+        sleep(TIMEOUT)
     end
 end
 
