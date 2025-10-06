@@ -270,7 +270,7 @@ end
 local function handleTimeouts()
     while true do
         for id, info in pairs(SUPPLIERS) do
-            if (os.clock() - info.timeout) >= TIMEOUT then
+            if (os.clock() - info.timeout) >= (TIMEOUT+1) then
                 printFromMerchant("Supplier " .. id .. " timed out.")
                 host.send("Supplier " .. id .. " timed out.", "info")
                 local supplierPeripheral = getPCIDs()[id]
