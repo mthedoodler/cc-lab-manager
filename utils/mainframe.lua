@@ -68,9 +68,9 @@ end
 
 local supplierNet = {}
 
-function supplierNet.send(id, message, protocol)
-    local packetID = generateMessageID()
-    rednet.send(id, encodeMessage(packetID, message, protocol), LAB_PROTOCOL)
+function supplierNet.send(id, message, protocol, packetId)
+    packetId = packetId or generateMessageID()
+    rednet.send(id, encodeMessage(packetId, message, protocol), LAB_PROTOCOL)
 end
 
 function supplierNet.receive(timeout)
@@ -90,7 +90,8 @@ function supplierNet.receive(timeout)
     return id, msg.id, msg.message, msg.protocol
 end
 
-function host.send(message, protocol)
+function host.send(message, protocol, packetId)
+    packetId = packetId or generateMessageID()
     host.websocket.send(encodeMessage("", message, protocol))
 end
 
