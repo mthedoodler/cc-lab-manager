@@ -51,12 +51,23 @@ local function connectAndRegister(supplierInfo)
     sleep(math.random(0, 200) / 20)
 
     local connected = false
-    repeat
-        supplierNet.send(merchantId, supplierInfo, "register")
-        local id, msgId, msg, protocol = supplierNet.receive(5)
 
-        if (msg ~= nil) and (id == merchantId) and (protocol == "register") then
+    local waitTime = 5
+
+    repeat
+        _supplierSend(merchantId, supplierInfo, "register")
+        local id, msgId, msg, protocol = supplierNet.receive(waitTime)
+
+        if protocol == "ack" then 
+            waitTime = 0
+        elseif (msg ~= nil) and (id == merchantId) and (protocol == "register") then
+            waitTime = 5
             if msg == "ok" then
+                sleep(0.05)
+                _supplierSend(merchantId, {
+                    id = msgId,
+                    from = protocol
+                }, "ack") --use original to prevent timeouting
                 printFromMerchant("Sucessfully registered!")
                 connected = true
             end
@@ -88,7 +99,7 @@ local function supply(merchantId, commands, protocolHandlers)
                 printFromMerchant("<" .. protocol .. ">" .. textutils.serialise(message))
 
                 if id == merchantId then
-                    if protocol ~= "ack" then
+                    if true then
                         supplierNet.send(merchantId, {
                             id = msgId,
                             from = protocol
@@ -126,7 +137,6 @@ local function supply(merchantId, commands, protocolHandlers)
     local function _keepAlive()
         while true do
             sleep(TIMEOUT_SECONDS)
-            print(merchantTimeout, os.clock())
             if (merchantTimeout) and (os.clock() - merchantTimeout) >= (TIMEOUT_SECONDS+1) then
                 printFromSupplier("Merchant timed out. Unregistering.")
                 return

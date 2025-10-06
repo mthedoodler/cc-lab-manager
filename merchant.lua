@@ -21,6 +21,15 @@ local TIMEOUT = mainframe.TIMEOUT_SECONDS
 
 SUPPLIERS = {}
 
+local _supplierSend = supplierNet.send
+
+function supplierNet.send(id, message, protocol, msgId)
+    if SUPPLIERS[id] then
+        SUPPLIERS[id].timeout = os.clock()
+    end
+    _supplierSend(id, message, protocol, msgId)
+end
+
 local function generateCommandList(id)
     local supplier = SUPPLIERS[id]
 
@@ -46,7 +55,6 @@ local function registerSupplier(msg, id)
 
         supplier.type = msg.type
         supplier.name = msg.name
-        supplier.timeout = os.clock()
 
         SUPPLIERS[id] = supplier
 
@@ -214,11 +222,11 @@ local PROTOCOL_HANDLERS = {
         end
     },
 
-    keepalive = {
+    ack = {
         supplier = function(msg, id)
             if SUPPLIERS[id] then
-                --printFromSupplier("Keepalive packet sent from " .. id)
-                SUPPLIERS[id].timeout = os.clock()
+                print("?")
+                SUPPLIERS[id].timeout = nil
             end
         end
     }
@@ -239,6 +247,14 @@ local function handleSuppliers()
             end
 
             if PROTOCOL_HANDLERS[protocol] and PROTOCOL_HANDLERS[protocol].supplier then
+                if protocol ~= "ack" then
+                    sleep(0.05)
+                    supplierNet.send(id, {
+                        id = msgId,
+                        from = protocol
+                    }, "ack")
+                end
+
                 PROTOCOL_HANDLERS[protocol].supplier(message, id)
             end
         end
@@ -253,11 +269,17 @@ local function handleHost()
     end
 
     while true do
-        local _, message, protocol = host.receive()
+        local msgId, message, protocol = host.receive()
 
         if message then
             printFromHost("<" .. protocol .. ">:" .. textutils.serialise(message))
             if PROTOCOL_HANDLERS[protocol] and PROTOCOL_HANDLERS[protocol].host then
+                if protocol ~= "ack" then
+                    host.send({
+                        id = msgId,
+                        from = protocol
+                    }, "ack")
+                end
                 PROTOCOL_HANDLERS[protocol].host(message)
             else
                 host.send("error", "protocol " .. protocol .. " not recognized.")
@@ -270,7 +292,7 @@ end
 local function handleTimeouts()
     while true do
         for id, info in pairs(SUPPLIERS) do
-            if (os.clock() - info.timeout) >= (TIMEOUT+1) then
+            if (info.timeout) and (os.clock() - info.timeout) >= (TIMEOUT+1) then
                 printFromMerchant("Supplier " .. id .. " timed out.")
                 host.send("Supplier " .. id .. " timed out.", "info")
                 local supplierPeripheral = getPCIDs()[id]
@@ -279,8 +301,6 @@ local function handleTimeouts()
                 if supplierPeripheral then
                     supplierPeripheral.turnOn()
                 end
-            else
-                supplierNet.send(id, "", "keepalive")
             end
         end
         sleep(TIMEOUT)
