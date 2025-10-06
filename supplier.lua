@@ -15,6 +15,15 @@ local merchantTimeout
 
 local TIMEOUT_SECONDS = mainframe.TIMEOUT_SECONDS
 
+local _supplierSend = supplierNet.send
+
+function supplierNet.send(id, message, protocol, msgId)
+    if SUPPLIERS[id] then
+        SUPPLIERS[id].timeout = os.clock()
+    end
+    _supplierSend(id, message, protocol, msgId)
+end
+
 local function findMerchant(timeout)
     local timeout = timeout or 1
     local merchantId
@@ -73,8 +82,6 @@ local function supply(merchantId, commands, protocolHandlers)
         end
     }
 
-    merchantTimeout = os.clock()
-
     local function _run()
         while true do
             local id, msgId, message, protocol = supplierNet.receive()
@@ -89,8 +96,10 @@ local function supply(merchantId, commands, protocolHandlers)
                             from = protocol
                         }, "ack")
                     end
-
-                    if protocol == "cmd" then
+                    
+                    if protocol == "ack" then
+                        merchantTimeout = nil
+                    elseif protocol == "cmd" then
                         if message.cmd ~= nil then 
                             if commands[message.cmd] then
                                 supplierNet.send(merchantId, "Executing command " .. message.cmd, "info")
@@ -106,8 +115,6 @@ local function supply(merchantId, commands, protocolHandlers)
                         return
                     elseif protocol == "ping" then
                         supplierNet.send(merchantId, "pong", "ping")
-                    elseif protocol == "keepalive" then
-                        merchantTimeout = os.clock()
                     elseif protocolHandlers[protocol] then
                         protocolHandlers[protocol](merchantId, printFromSupplier)
                     else
@@ -121,7 +128,7 @@ local function supply(merchantId, commands, protocolHandlers)
     local function _keepAlive()
         while true do
             sleep(TIMEOUT_SECONDS)
-            if (os.clock() - merchantTimeout) >= (TIMEOUT_SECONDS+1) then
+            if (merchantTimeout) and (os.clock() - merchantTimeout) >= (TIMEOUT_SECONDS+1) then
                 printFromSupplier("Merchant timed out. Unregistering.")
 
                 return
