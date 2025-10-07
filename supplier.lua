@@ -96,15 +96,15 @@ local function supply(merchantId, commands, protocolHandlers)
             local id, msgId, message, protocol = supplierNet.receive()
 
             if message ~= nil then
-                printFromMerchant("<" .. protocol .. ">" .. textutils.serialise(message))
+                if protocol ~= "ack" then
+                    printFromMerchant("<" .. protocol .. ">" .. textutils.serialise(message))
+                end
 
                 if id == merchantId then
-                    if true then 
-                        _supplierSend(merchantId, {
+                    _supplierSend(merchantId, {
                             id = msgId,
                             from = protocol
-                        }, "ack")
-                    end
+                    }, "ack")
                     
                     if protocol == "ack" then
                         merchantTimeout = nil
