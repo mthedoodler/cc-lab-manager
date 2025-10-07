@@ -99,7 +99,7 @@ local function supply(merchantId, commands, protocolHandlers)
                 printFromMerchant("<" .. protocol .. ">" .. textutils.serialise(message))
 
                 if id == merchantId then
-                    if true then
+                    if true then 
                         _supplierSend(merchantId, {
                             id = msgId,
                             from = protocol
