@@ -248,7 +248,7 @@ local function handleSuppliers()
             if PROTOCOL_HANDLERS[protocol] and PROTOCOL_HANDLERS[protocol].supplier then
                 if protocol ~= "ack" then
                     sleep(0.05)
-                    supplierNet.send(id, {
+                    _supplierSend(id, {
                         id = msgId,
                         from = protocol
                     }, "ack")

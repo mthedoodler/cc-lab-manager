@@ -100,7 +100,7 @@ local function supply(merchantId, commands, protocolHandlers)
 
                 if id == merchantId then
                     if true then
-                        supplierNet.send(merchantId, {
+                        _supplierSend(merchantId, {
                             id = msgId,
                             from = protocol
                         }, "ack")
