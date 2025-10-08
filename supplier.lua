@@ -15,11 +15,11 @@ local merchantTimeout
 
 local TIMEOUT_SECONDS = mainframe.TIMEOUT_SECONDS
 
-local _supplierSend = supplierNet.send
+supplierNet.rawSend = supplierNet.send
 
 function supplierNet.send(id, message, protocol, msgId)
     merchantTimeout = os.clock()
-    _supplierSend(id, message, protocol, msgId)
+    supplierNet.rawSend(id, message, protocol, msgId)
 end
 
 local function findMerchant(timeout)
@@ -55,7 +55,7 @@ local function connectAndRegister(supplierInfo)
     local waitTime = 5
 
     repeat
-        _supplierSend(merchantId, supplierInfo, "register")
+        supplierNet.rawSend(merchantId, supplierInfo, "register")
         local id, msgId, msg, protocol = supplierNet.receive(waitTime)
 
         if protocol == "ack" then 
@@ -64,7 +64,7 @@ local function connectAndRegister(supplierInfo)
             waitTime = 5
             if msg == "ok" then
                 sleep(0.05)
-                _supplierSend(merchantId, {
+                supplierNet.rawSend(merchantId, {
                     id = msgId,
                     from = protocol
                 }, "ack") --use original to prevent timeouting
@@ -101,7 +101,7 @@ local function supply(merchantId, commands, protocolHandlers)
                 end
 
                 if id == merchantId then
-                    _supplierSend(merchantId, {
+                    supplierNet.rawSend(merchantId, {
                             id = msgId,
                             from = protocol
                     }, "ack")

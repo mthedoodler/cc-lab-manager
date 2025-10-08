@@ -59,6 +59,10 @@ local function encodeMessage(msgId, message, protocol)
     expect(1, message, "string", "table")
     expect(2, protocol, "string")
 
+    if type(message) == "string" then
+        message = {msg=message}
+    end
+
     return textutils.serialiseJSON({
             message = message,
             protocol = protocol,
@@ -77,7 +81,7 @@ function supplierNet.receive(timeout)
     local id, packet, _ = rednet.receive(LAB_PROTOCOL, timeout)
 
     if packet == nil then
-        error("disconnect: no packet received")    
+        error("disconnect: no packet received", 2)    
     end
 
     local msg, err = decodeMessage(packet)
@@ -98,13 +102,13 @@ end
 function host.receive()
     local ok, res = pcall(host.websocket.receive)
     if not ok then
-        error("disconnect: closed websocket")
+        error("disconnect: closed websocket", 2)
     end
 
     local packet = res 
 
     if packet == nil then
-        error("disconnect: empty packet")
+        error("disconnect: empty packet", 2)
     end
     
     local msg, err = decodeMessage(packet)
@@ -150,5 +154,5 @@ end
 return {host=host, 
         supplierNet=supplierNet, 
         logger={printFromHost=printFromHost, printFromMerchant=printFromMerchant, printFromSupplier=printFromSupplier},
-        TIMEOUT_SECONDS = 10
+        TIMEOUT_SECONDS = 2
     }
