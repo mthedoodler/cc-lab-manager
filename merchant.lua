@@ -225,14 +225,14 @@ local PROTOCOL_HANDLERS = {
                 if msg.status == "ok" then
                     local results = msg.results
                     if results then
-                        host.send("<" .. id .. ": " .. SUPPLIERS[id].name .. ">: Command \"" .. commandString .. "\" executed successfully, returned " .. textutils.serialize(results), "info")
+                        host.send("<" .. id .. ": " .. SUPPLIERS[id].name .. ">: Command \'" .. commandString .. "\' executed successfully, returned " .. textutils.serialize(results), "info")
                     end
                 end
 
                 if msg.status == "error" then
                     local err = msg.error
                     if err.err and err.msg then
-                        host.send("<" .. id .. ": " .. SUPPLIERS[id].name .. ">: Command \"" .. commandString .. "\" failed to execute:" .. textutils.serialize(err), "info")
+                        host.send("<" .. id .. ": " .. SUPPLIERS[id].name .. ">: Command \'" .. commandString .. "\' failed to execute:" .. textutils.serialize(err), "info")
                     end
                 end
             end
