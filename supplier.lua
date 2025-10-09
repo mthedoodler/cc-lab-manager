@@ -54,9 +54,7 @@ local function connectAndRegister(supplierInfo)
     supplierNet.rawSend(merchantId, supplierInfo, "register")
     while true do
         local ok, res = pcall(function() return {supplierNet.receive(5)} end)
-
         if ok then -- if message recieved in that time
-        
             local id, msgId, msg, protocol = table.unpack(res)
 
             if protocol ~= "ack" then
