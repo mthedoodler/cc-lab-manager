@@ -210,6 +210,31 @@ local PROTOCOL_HANDLERS = {
                 msg = "Sending " .. cmd .. " to " .. SUPPLIERS[id].name .. " at " .. id
                 host.send(msg, "info")
             end
+        end,
+
+        supplier = function(msg, id) 
+            printFromSupplier("Command response recieved: " .. id)
+            print(textutils.serialize(msg))
+            if msg.type == "response" then
+                print(1)
+                local command = msg.command
+                if msg.status == "ok" then
+                    print(2)
+                    local results = msg.results
+                    if results then
+                        print(3)
+                        host.send("<" .. id .. ": " .. SUPPLIERS[id].name .. ">: Command " .. command.cmd .. " " .. table.concat(command.args, " ") .. "executed successfully, returned " .. textutils.serialize(results), "info")
+                    end
+                end
+
+                if msg.status == "error" then
+                    local err = msg.error
+                    if err.err and err.msg then
+                        host.send("<" .. id .. ": " .. SUPPLIERS[id].name .. ">: Command " .. command.cmd .. " " .. table.concat(command.args, " ") .. " failed to execute:" .. textutils.serialize(err), "info")
+                    end
+                end
+            end
+
         end
     },
 

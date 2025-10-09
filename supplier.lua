@@ -124,7 +124,7 @@ local function supply(merchantId, commands, protocolHandlers)
                                     
                                     if ok then
                                         returnMsg.status = "ok"
-                                        returnMsg.results = res
+                                        returnMsg.results = res or {}
                                     else
                                         returnMsg.status = "error"
                                         returnMsg.error = res
@@ -132,7 +132,7 @@ local function supply(merchantId, commands, protocolHandlers)
                                     
                                     print(textutils.serialise(returnMsg))
                                     sleep(0.05)
-                                    supplierNet.send(merchantId, returnMsg, "command")
+                                    supplierNet.send(merchantId, returnMsg, "cmd")
                                 else
                                     printFromSupplier("Invalid command recieved: " .. textutils.serialise(command))
                                 end
