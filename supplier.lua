@@ -20,7 +20,6 @@ supplierNet.rawSend = _rawSend
 
 function supplierNet.send(id, message, protocol, msgId)
     merchantTimeout = os.clock()
-    printFromSupplier("Awaiting ack for " .. protocol)
     supplierNet.rawSend(id, message, protocol, msgId)
 end
 
