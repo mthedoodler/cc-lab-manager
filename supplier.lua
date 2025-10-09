@@ -70,9 +70,6 @@ local function connectAndRegister(supplierInfo)
                     if msg.type == "ok" then
                         printFromMerchant("Sucessfully registered!")
                         break
-                    else
-                        printFromMerchant("Failed to register: " .. msg.error)
-                        error("Failed to register: " .. msg.error, 99)
                     end
                 end
             end --use original to prevent timeouting
