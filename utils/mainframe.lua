@@ -154,5 +154,5 @@ end
 return {host=host, 
         supplierNet=supplierNet, 
         logger={printFromHost=printFromHost, printFromMerchant=printFromMerchant, printFromSupplier=printFromSupplier},
-        TIMEOUT_SECONDS = 2
+        TIMEOUT_SECONDS = 5
     }

@@ -177,8 +177,9 @@ function supplier.register(name, type, commands, protocolHandlers)
 
     print(textutils.serialise(COMMAND_NAMES))
     while true do
-        local merchantId = connectAndRegister(supplierInfo)
-        local ok, res = pcall(function() supply(merchantId, commands,protocolHandlers) end)
+        local ok, res = pcall(function() 
+            local merchantId = connectAndRegister(supplierInfo)
+            supply(merchantId, commands,protocolHandlers) end)
         if not ok then
             local disconnectErrPosition = {res:find("disconnect")}
             disconnectErrPosition = disconnectErrPosition[2]
