@@ -15,8 +15,7 @@ local merchantTimeout
 
 local TIMEOUT_SECONDS = mainframe.TIMEOUT_SECONDS
 
-local _rawSend = supplierNet.send
-supplierNet.rawSend = _rawSend
+supplierNet.rawSend = supplierNet.send
 
 function supplierNet.send(id, message, protocol, msgId)
     merchantTimeout = os.clock()
@@ -53,22 +52,18 @@ local function connectAndRegister(supplierInfo)
 
     local connected = false
 
-    local waitTime = 5
-
     repeat
         supplierNet.rawSend(merchantId, supplierInfo, "register")
-        local id, msgId, msg, protocol = supplierNet.receive(waitTime)
-
-        if protocol == "ack" then 
-            waitTime = 0
-        elseif (msg ~= nil) and (id == merchantId) and (protocol == "register") then
-            waitTime = 5
-            if msg == "ok" then
-                sleep(0.05)
-                supplierNet.rawSend(merchantId, {
-                    id = msgId,
-                    from = protocol
-                }, "ack") --use original to prevent timeouting
+        local id, msgId, msg, protocol = supplierNet.receive()
+        if protocol ~= "ack" then
+            sleep(0.05)
+            supplierNet.rawSend(merchantId, {
+                id = msgId,
+                from = protocol
+            }, "ack") --use original to prevent timeouting
+        end
+        if (protocol == "register") and (msg ~= nil) and (id == merchantId) then
+            if msg.msg == "ok" then
                 printFromMerchant("Sucessfully registered!")
                 connected = true
             end
@@ -185,7 +180,7 @@ function supplier.register(name, type, commands, protocolHandlers)
             local disconnectErrPosition = {res:find("disconnect")}
             disconnectErrPosition = disconnectErrPosition[2]
             if (disconnectErrPosition) then
-                printFromSupplier("Disconnected:" .. res:sub(disconnectErrPosition+2))
+                printFromSupplier("Disconnected:" .. res:sub(disconnectErrPosition+2) .. ":" .. res)
             else
                 printFromSupplier("Disconnected due to crash: " .. res)
                 break
