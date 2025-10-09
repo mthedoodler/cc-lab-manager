@@ -194,7 +194,9 @@ local PROTOCOL_HANDLERS = {
             else
                 local argStart = splitCmd[1]:len() + splitCmd[2]:len() + 3
                 local args = parseArgs(msg:sub(argStart))
-                print(msg:sub(argStart))
+                if args[#args] == "" then
+                    args[#args] = nil
+                end
                 supplierNet.send(id, {
                                         type="request",
                                         command = {
@@ -212,7 +214,7 @@ local PROTOCOL_HANDLERS = {
             if msg.type == "response" then
                 local command = msg.command
                 local commandString = command.cmd
-                
+
                 for _, arg in pairs(command.args) do
                     commandString = commandString .. " \"" .. arg .. "\""
                 end
