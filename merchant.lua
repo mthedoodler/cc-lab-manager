@@ -22,6 +22,7 @@ local TIMEOUT = mainframe.TIMEOUT_SECONDS
 SUPPLIERS = {}
 
 local _supplierSend = supplierNet.send
+supplierNet.rawSend = _supplierSend
 
 function supplierNet.send(id, message, protocol, msgId)
     if SUPPLIERS[id] then
@@ -199,8 +200,12 @@ local PROTOCOL_HANDLERS = {
                 local argStart = splitCmd[1]:len() + splitCmd[2]:len() + 3
                 local args = parseArgs(msg:sub(argStart))
                 print(msg:sub(argStart))
-                supplierNet.send(id, {cmd=cmd,
-                                      args = args
+                supplierNet.send(id, {
+                                        type="request",
+                                        command = {
+                                                    cmd=cmd,
+                                                    args = args
+                                                }
                                       }, "cmd")
                 msg = "Sending " .. cmd .. " to " .. SUPPLIERS[id].name .. " at " .. id
                 host.send(msg, "info")
@@ -243,16 +248,14 @@ local function handleSuppliers()
         if message ~= nil then
             if protocol ~= "ack" then
                 printFromSupplier("<" .. id .. ":" .. protocol .. ">: " .. textutils.serialise(message))
+                --printFromMerchant("Sending ack to " .. id)
+                supplierNet.rawSend(id, {
+                    id = msgId,
+                    from = protocol
+                }, "ack")
             end
 
             if PROTOCOL_HANDLERS[protocol] and PROTOCOL_HANDLERS[protocol].supplier then
-                if protocol ~= "ack" then
-                    sleep(0.05)
-                    _supplierSend(id, {
-                        id = msgId,
-                        from = protocol
-                    }, "ack")
-                end
 
                 PROTOCOL_HANDLERS[protocol].supplier(message, id)
             end

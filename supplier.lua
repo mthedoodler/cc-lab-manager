@@ -15,10 +15,12 @@ local merchantTimeout
 
 local TIMEOUT_SECONDS = mainframe.TIMEOUT_SECONDS
 
-supplierNet.rawSend = supplierNet.send
+local _rawSend = supplierNet.send
+supplierNet.rawSend = _rawSend
 
 function supplierNet.send(id, message, protocol, msgId)
     merchantTimeout = os.clock()
+    printFromSupplier("Awaiting ack for " .. protocol)
     supplierNet.rawSend(id, message, protocol, msgId)
 end
 
@@ -52,16 +54,16 @@ local function connectAndRegister(supplierInfo)
 
     local connected = false
 
+    supplierNet.rawSend(merchantId, supplierInfo, "register")
     repeat
-        supplierNet.rawSend(merchantId, supplierInfo, "register")
         local id, msgId, msg, protocol = supplierNet.receive()
         if protocol ~= "ack" then
             sleep(0.05)
             supplierNet.rawSend(merchantId, {
                 id = msgId,
                 from = protocol
-            }, "ack") --use original to prevent timeouting
-        end
+            }, "ack")
+        end --use original to prevent timeouting
         if (protocol == "register") and (msg ~= nil) and (id == merchantId) then
             if msg.msg == "ok" then
                 printFromMerchant("Sucessfully registered!")
@@ -69,6 +71,7 @@ local function connectAndRegister(supplierInfo)
             end
         else
             printFromSupplier("Retrying...")
+            supplierNet.rawSend(merchantId, supplierInfo, "register")
         end
     until connected
 
@@ -88,6 +91,7 @@ local function supply(merchantId, commands, protocolHandlers)
     }
 
     local function _run()
+        printFromSupplier("Ready for commands!")
         while true do
             local id, msgId, message, protocol = supplierNet.receive()
 
@@ -105,14 +109,33 @@ local function supply(merchantId, commands, protocolHandlers)
                     if protocol == "ack" then
                         merchantTimeout = nil
                     elseif protocol == "cmd" then
-                        if message.cmd ~= nil then 
-                            if commands[message.cmd] then
-                                supplierNet.send(merchantId, "Executing command " .. message.cmd, "info")
-                                commands[message.cmd](message.args, ctx)
-                                sleep(0.05)
-                                supplierNet.send(merchantId, "Command " .. message.cmd .. " executed.", "info")
-                            else
-                                supplierNet.send(merchantId,"Unrecognized command: " .. message.cmd, "info")
+                        printFromSupplier("Command package recieved: " ..textutils.serialise(message))
+                        if message.type == "request" then
+                            local command = message.command
+                            if type(command) == "table" then 
+                                if commands[command.cmd] then
+                                    local ok, res = pcall(function() commands[command.cmd](command.args, ctx) end)
+                                    
+                                    local returnMsg = {
+                                            type="response",
+                                            id = msgId,
+                                            command = command,
+                                        }
+                                    
+                                    if ok then
+                                        returnMsg.status = "ok"
+                                        returnMsg.results = res
+                                    else
+                                        returnMsg.status = "error"
+                                        returnMsg.error = res
+                                    end
+                                    
+                                    print(textutils.serialise(returnMsg))
+                                    sleep(0.05)
+                                    supplierNet.send(merchantId, returnMsg, "command")
+                                else
+                                    printFromSupplier("Invalid command recieved: " .. textutils.serialise(command))
+                                end
                             end
                         end
                     elseif protocol == "unregister" then
@@ -176,6 +199,7 @@ function supplier.register(name, type, commands, protocolHandlers)
         local ok, res = pcall(function() 
             local merchantId = connectAndRegister(supplierInfo)
             supply(merchantId, commands,protocolHandlers) end)
+        merchantTimeout = nil
         if not ok then
             local disconnectErrPosition = {res:find("disconnect")}
             disconnectErrPosition = disconnectErrPosition[2]
