@@ -51,28 +51,35 @@ local function connectAndRegister(supplierInfo)
     printFromSupplier("Attempting to register supplier " .. supplierInfo.name)
     sleep(math.random(0, 200) / 20)
 
-    local connected = false
-
     supplierNet.rawSend(merchantId, supplierInfo, "register")
-    repeat
-        local id, msgId, msg, protocol = supplierNet.receive()
-        if protocol ~= "ack" then
-            sleep(0.05)
-            supplierNet.rawSend(merchantId, {
-                id = msgId,
-                from = protocol
-            }, "ack")
-        end --use original to prevent timeouting
-        if (protocol == "register") and (msg ~= nil) and (id == merchantId) then
-            if msg.msg == "ok" then
-                printFromMerchant("Sucessfully registered!")
-                connected = true
-            end
-        else
-            printFromSupplier("Retrying...")
-            supplierNet.rawSend(merchantId, supplierInfo, "register")
+    while true do
+        local ok, res = pcall(function() return {supplierNet.receive(5)} end)
+        print(ok)
+        if ok then -- if message recieved in that time
+            local id, msgId, msg, protocol = table.unpack(res)
+
+            print(textutils.serialise(res))
+
+            if protocol ~= "ack" then
+                sleep(0.05)
+                supplierNet.rawSend(merchantId, {
+                    id = msgId,
+                    from = protocol
+                }, "ack")
+
+                print(protocol)
+                if (protocol == "register") and (msg ~= nil) and (id == merchantId) then
+                    if msg.msg == "ok" then
+                        printFromMerchant("Sucessfully registered!")
+                        break
+                    end
+                end
+            end --use original to prevent timeouting
         end
-    until connected
+        
+        printFromSupplier("Retrying...")
+        supplierNet.rawSend(merchantId, supplierInfo, "register")
+    end
 
     return merchantId
 end
@@ -199,13 +206,14 @@ function supplier.register(name, type, commands, protocolHandlers)
             local merchantId = connectAndRegister(supplierInfo)
             supply(merchantId, commands,protocolHandlers) end)
         merchantTimeout = nil
+        printFromSupplier("Disconnected from Merchant.")
         if not ok then
             local disconnectErrPosition = {res:find("disconnect")}
             disconnectErrPosition = disconnectErrPosition[2]
             if (disconnectErrPosition) then
-                printFromSupplier("Disconnected:" .. res:sub(disconnectErrPosition+2) .. ":" .. res)
+                printFromSupplier("Disconnect reason:" .. res:sub(disconnectErrPosition+2) .. ":" .. res)
             else
-                printFromSupplier("Disconnected due to crash: " .. res)
+                printFromSupplier("Fatal crash: " .. res)
                 break
             end
         end
