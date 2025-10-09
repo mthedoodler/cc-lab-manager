@@ -127,11 +127,11 @@ end
 local PROTOCOL_HANDLERS = {
     info = {
         supplier = function(msg, id)
-            host.send("<"..SUPPLIERS[id].name..":"..id..">: "..msg, "info")
+            host.send("<"..SUPPLIERS[id].name..":"..id..">: "..msg.msg, "info")
         end,
 
         host = function(msg)
-            host.send(msg, "info")
+            host.send(msg.msg, "info")
         end
     },
 
