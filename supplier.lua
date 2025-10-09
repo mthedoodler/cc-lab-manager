@@ -15,7 +15,8 @@ local merchantTimeout
 
 local TIMEOUT_SECONDS = mainframe.TIMEOUT_SECONDS
 
-supplierNet.rawSend = supplierNet.send
+local _rawSend = supplierNet.send
+supplierNet.rawSend = _rawSend
 
 function supplierNet.send(id, message, protocol, msgId)
     merchantTimeout = os.clock()
