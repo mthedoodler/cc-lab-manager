@@ -216,9 +216,11 @@ local PROTOCOL_HANDLERS = {
             printFromSupplier("Command response recieved: " .. id)
             if msg.type == "response" then
                 local command = msg.command
-
-                local commandString = command.cmd .. " " .. table.concat(command.args, " ")
-                commandString = commandString:sub(1, -2)
+                local commandString = command.cmd
+                
+                for _, arg in pairs(command.args) do
+                    commandString = commandString .. " \"" .. arg .. "\""
+                end
 
                 if msg.status == "ok" then
                     local results = msg.results
