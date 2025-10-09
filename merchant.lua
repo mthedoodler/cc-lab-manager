@@ -339,7 +339,11 @@ rednet.host("merchant", "merchant")
 rednet.open(peripheral.getName(peripheral.find("modem")))
 
 for id, computer in pairs(getPCIDs()) do
-    computer.turnOn()
+    if not computer.isOn() then
+        computer.turnOn()
+    else
+        supplierNet.send(id, {}, "reregister")
+    end
 end
 
 while true do
