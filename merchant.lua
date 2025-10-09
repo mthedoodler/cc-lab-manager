@@ -138,10 +138,6 @@ local PROTOCOL_HANDLERS = {
 
     echo = {
         supplier = function(msg, id)
-            if type(msg) == "string" then
-                msg = {message=msg}
-            end
-
             if msg['return'] == true then
                 printFromSupplier("<" .. id .. ":echo>" .. textutils.serialize(msg.message))
             else
@@ -151,10 +147,6 @@ local PROTOCOL_HANDLERS = {
         end,
 
         host = function(msg)
-            if type(msg) == "string" then
-                msg = {message=msg}
-            end
-
             if msg['return'] == true then
                 printFromHost("<echo>" .. textutils.serialize(msg.message))
             else
@@ -242,14 +234,14 @@ local PROTOCOL_HANDLERS = {
 
     ping = {
         host = function(msg) 
-            if msg == "ping" then
-                host.send("pong", "ping")
+            if msg.type == "ping" then
+                host.send({type="pong"}, "ping")
             end
         end,
 
         supplier = function(msg, id)
-            if msg == "ping" then
-                supplierNet.send(id, "pong", "ping")
+            if msg.type == "ping" then
+                supplierNet.send(id, {type="pong"}, "ping")
             end
         end
     },
