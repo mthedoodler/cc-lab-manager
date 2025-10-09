@@ -54,11 +54,10 @@ local function connectAndRegister(supplierInfo)
     supplierNet.rawSend(merchantId, supplierInfo, "register")
     while true do
         local ok, res = pcall(function() return {supplierNet.receive(5)} end)
-        print(ok)
-        if ok then -- if message recieved in that time
-            local id, msgId, msg, protocol = table.unpack(res)
 
-            print(textutils.serialise(res))
+        if ok then -- if message recieved in that time
+        
+            local id, msgId, msg, protocol = table.unpack(res)
 
             if protocol ~= "ack" then
                 sleep(0.05)
@@ -67,7 +66,6 @@ local function connectAndRegister(supplierInfo)
                     from = protocol
                 }, "ack")
 
-                print(protocol)
                 if (protocol == "register") and (msg ~= nil) and (id == merchantId) then
                     if msg.msg == "ok" then
                         printFromMerchant("Sucessfully registered!")
@@ -139,7 +137,6 @@ local function supply(merchantId, commands, protocolHandlers)
                                         returnMsg.error = res
                                     end
                                     
-                                    print(textutils.serialise(returnMsg))
                                     sleep(0.05)
                                     supplierNet.send(merchantId, returnMsg, "cmd")
                                 else
