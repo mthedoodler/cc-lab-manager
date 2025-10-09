@@ -46,6 +46,11 @@ end
 
 local function registerSupplier(msg, id)
     if type(msg.name) == "string" and type(msg.type) == "string" and type(msg.commands) == "table" then
+        
+        if SUPPLIER_NAMES[msg.name] then
+            printFromMerchant("Warning: Supplier " .. msg.name .. " already exists.")
+        end
+
         printFromMerchant("Registering supplier " .. tostring(id))
         local supplier = {}
 
@@ -61,7 +66,7 @@ local function registerSupplier(msg, id)
         SUPPLIERS[id] = supplier
         SUPPLIER_NAMES[msg.name] = id
         
-        supplierNet.send(id, "ok", "register")
+        supplierNet.send(id, {type="ok"}, "register")
         printFromMerchant("Registered Supplier ".. msg.name .. " of type " .. msg.type)
 
         host.send(generateCommandList(id), "info")
