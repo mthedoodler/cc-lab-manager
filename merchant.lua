@@ -20,6 +20,7 @@ local TIMEOUT = mainframe.TIMEOUT_SECONDS
 -- ########################################################## --
 
 SUPPLIERS = {}
+SUPPLIER_NAMES = {}
 
 local _supplierSend = supplierNet.send
 supplierNet.rawSend = _supplierSend
@@ -58,7 +59,8 @@ local function registerSupplier(msg, id)
         supplier.name = msg.name
 
         SUPPLIERS[id] = supplier
-
+        SUPPLIER_NAMES[msg.name] = id
+        
         supplierNet.send(id, "ok", "register")
         printFromMerchant("Registered Supplier ".. msg.name .. "of type " .. msg.type)
 
@@ -69,6 +71,8 @@ end
 local function unregisterSupplier(id)
     printFromMerchant("Unregistering supplier " .. id .. " \"" .. SUPPLIERS[id].name .. "\"")
     supplierNet.send(id, "", "unregister")
+
+    SUPPLIER_NAMES[SUPPLIERS[id].name] = nil
     SUPPLIERS[id] = nil
 end
 
@@ -172,14 +176,23 @@ local PROTOCOL_HANDLERS = {
             local id = splitCmd[1]
 
             if id ~= "merchant" then
-                id = tonumber(id)
+                id = tonumber(id) or SUPPLIER_NAMES[id]
             end
 
             local cmd = splitCmd[2]
             if id == nil then
                 host.send("Invalid command.", "info")
             elseif id == "merchant" then
-                host.send("WIP", "info")
+                if cmd == "list" then
+                    local cmdList = ""
+                    for id, _ in pairs(SUPPLIERS) do
+                        cmdList = cmdList .. "\n" .. generateCommandList(id)
+                    end
+
+                    host.send(cmdList, "info")
+                else
+                    host.send("Invalid command.", "info")
+                end
             elseif SUPPLIERS[id] == nil then
                 host.send("Supplier " .. id .. " does not exist.", "info")
             elseif cmd == "help" then
