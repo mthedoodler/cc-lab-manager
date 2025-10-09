@@ -44,6 +44,9 @@ local function generateCommandList(id)
 end
 
 local function registerSupplier(msg, id)
+    if SUPPLIERS[id] then
+        return
+    end
     if type(msg.name) == "string" and type(msg.type) == "string" and type(msg.commands) == "table" then
         printFromMerchant("Registering supplier " .. tostring(id))
         local supplier = {}
