@@ -186,7 +186,12 @@ function supplier.register(name, type, commands, protocolHandlers)
     expect(4, protocolHandlers, "table", "nil")
 
     local protocolHandlers = protocolHandlers or {}
-    rednet.open(peripheral.getName(peripheral.find("modem")))
+
+    local modems = {peripheral.find("modem")}
+
+    for _, modem in pairs(modems) do
+        rednet.open(peripheral.getName(modem))
+    end
 
     local COMMAND_NAMES = {}
 
