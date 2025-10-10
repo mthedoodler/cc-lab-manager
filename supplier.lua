@@ -121,7 +121,7 @@ local function supply(merchantId, commands, protocolHandlers)
                             local command = message.command
                             if type(command) == "table" then 
                                 if commands[command.cmd] then
-                                    local ok, res = pcall(function() commands[command.cmd](command.args, ctx) end)
+                                    local ok, res = pcall(function() return commands[command.cmd](command.args, ctx) end)
                                     
                                     local returnMsg = {
                                             type="response",
@@ -131,9 +131,11 @@ local function supply(merchantId, commands, protocolHandlers)
                                     
                                     if ok then
                                         returnMsg.status = "ok"
+                                        print(textutils.serialise(res))
                                         returnMsg.results = res or {}
                                     else
                                         returnMsg.status = "error"
+
                                         if type(res) == "table" then
                                             returnMsg.error = res
                                         else
