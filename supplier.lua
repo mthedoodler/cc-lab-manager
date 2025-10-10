@@ -134,7 +134,6 @@ local function supply(merchantId, commands, protocolHandlers)
                                         returnMsg.results = res or {}
                                     else
                                         returnMsg.status = "error"
-                                        print(type(res))
                                         if type(res) == "table" then
                                             returnMsg.error = res
                                         else
