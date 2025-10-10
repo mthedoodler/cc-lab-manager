@@ -53,7 +53,7 @@ local function connectAndRegister(supplierInfo)
 
     supplierNet.rawSend(merchantId, supplierInfo, "register")
     while true do
-        local ok, res = pcall(function() return {supplierNet.receive(5)} end)
+        local ok, res = pcall(function() return {supplierNet.receive(10)} end)
 
         if ok then -- if message recieved in that time
         

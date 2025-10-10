@@ -66,7 +66,7 @@ local function registerSupplier(msg, id)
         SUPPLIERS[id] = supplier
         SUPPLIER_NAMES[msg.name] = id
         
-        supplierNet.send(id, {type="ok"}, "register")
+        supplierNet.rawSend(id, {type="ok"}, "register")
         printFromMerchant("Registered Supplier ".. msg.name .. " of type " .. msg.type)
 
         host.send(generateCommandList(id), "info")
