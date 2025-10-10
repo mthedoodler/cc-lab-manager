@@ -134,10 +134,10 @@ local function supply(merchantId, commands, protocolHandlers)
                                         returnMsg.results = res or {}
                                     else
                                         returnMsg.status = "error"
-                                        if type(res) == "tablr" then
+                                        if type(res) == "table" then
                                             returnMsg.error = res
                                         else
-                                            returnMsg.error = {type="lua-error", msg=res}
+                                            returnMsg.error = {type="lua-error", msg=tostring(res)}
                                         end
                                     end
 
