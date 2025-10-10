@@ -134,8 +134,14 @@ local function supply(merchantId, commands, protocolHandlers)
                                         returnMsg.results = res or {}
                                     else
                                         returnMsg.status = "error"
-                                        returnMsg.error = res
+                                        if type(res) == "tablr" then
+                                            returnMsg.error = res
+                                        else
+                                            returnMsg.error = {type="lua-error", msg=res}
+                                        end
                                     end
+
+                                    printFromSupplier(textutils.serialise(returnMsg))
                                     
                                     sleep(0.05)
                                     supplierNet.send(merchantId, returnMsg, "cmd")
