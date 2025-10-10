@@ -243,7 +243,7 @@ local PROTOCOL_HANDLERS = {
 
                 if msg.status == "error" then
                     local err = msg.error
-                    if err.err and err.msg then
+                    if err.type and err.msg then
                         host.send("<" .. id .. ": " .. SUPPLIERS[id].name .. ">: Command \'" .. commandString .. "\' failed to execute:" .. textutils.serialize(err), "info")
                     end
                 end
