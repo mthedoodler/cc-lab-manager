@@ -90,6 +90,7 @@ local function supply(merchantId, commands, protocolHandlers)
         sendToMerchant = function(msg, protocol)
             expect(1, msg, "table", "string")
             expect(2, protocol, "string")
+            sleep(0.05)
             supplierNet.send(merchantId, msg, protocol)
         end
     }
